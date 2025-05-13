@@ -110,11 +110,21 @@ function updatePointerFromEvent(e) {
   mouse.y = y;
 }
 window.addEventListener('mousemove', updatePointerFromEvent);
-canvas.addEventListener('touchstart', updatePointerFromEvent, {passive: false});
+canvas.addEventListener('touchstart', function(e) {
+  updatePointerFromEvent(e);
+  e.preventDefault();
+}, {passive: false});
 canvas.addEventListener('touchmove', function(e){
   updatePointerFromEvent(e);
   e.preventDefault();
 }, {passive: false});
+canvas.addEventListener('touchend', function(e){
+  e.preventDefault();
+}, {passive: false});
+// iOSピンチ・ダブルタップズーム防止
+document.addEventListener('gesturestart', function(e) {
+  e.preventDefault();
+});
 window.addEventListener('mouseleave', () => {
   mouse.x = orb.x;
   mouse.y = orb.y;
