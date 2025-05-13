@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Cursor Forge</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Super Cursor Forge</h1>
+  <canvas id="gameCanvas" width="600" height="600"></canvas>
+  <div id="ui">
+    <div id="energyContainer">
+      <canvas id="energyGauge" width="80" height="80"></canvas>
+    </div>
+    <button id="showGraph" style="display:none;">移動軌跡グラフを表示</button>
+    <div id="graphContainer" style="display:none;">
+      <canvas id="moveGraph" width="400" height="200"></canvas>
+    </div>
+  </div>
+  <audio id="se-create" src="assets/create.mp3"></audio>
+  <audio id="se-break" src="assets/break.mp3"></audio>
+  <audio id="bgm" src="assets/bgm.mp3" loop></audio>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

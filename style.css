@@ -1,0 +1,48 @@
+body {
+  background: radial-gradient(ellipse at center, #222 0%, #111 100%);
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  margin: 0;
+}
+h1 {
+  margin-top: 20px;
+  letter-spacing: 2px;
+  font-size: 2em;
+}
+#gameCanvas {
+  background: linear-gradient(135deg, #1a237e 0%, #0d133d 100%);
+  box-shadow: 0 0 30px #00e5ff55;
+  border-radius: 20px;
+  margin: 20px auto;
+  display: block;
+}
+#ui {
+  margin-top: 10px;
+}
+#energyContainer {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+}
+#energyGauge {
+  background: transparent;
+}
+#showGraph {
+  margin-top: 20px;
+  padding: 8px 18px;
+  font-size: 1em;
+  border-radius: 8px;
+  border: none;
+  background: #00e5ff;
+  color: #222;
+  cursor: pointer;
+}
+#graphContainer {
+  margin: 0 auto;
+  width: 420px;
+  background: #222a;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 0 8px #00e5ff44;
+}
