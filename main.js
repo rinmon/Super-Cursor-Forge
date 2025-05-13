@@ -98,39 +98,40 @@ function playSE(audio) {
   audio.play();
 }
 
-// --- マウス＆タッチ Tracking ---
-function updatePointerFromEvent(e) {
-  const rect = canvas.getBoundingClientRect();
-  let x, y;
-  if (e.touches && e.touches.length > 0) {
-    x = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
-    y = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
-  } else {
-    x = (e.clientX - rect.left) * (canvas.width / rect.width);
-    y = (e.clientY - rect.top) * (canvas.height / rect.height);
+// --- セルタップでオーブ追従 ---
+function cellFromPointer(x, y) {
+  // グリッドの左上座標・セルサイズ・グリッドサイズは既存変数を利用
+  const i = Math.floor((y - GRID_ORIGIN.y) / CELL_SIZE);
+  const j = Math.floor((x - GRID_ORIGIN.x) / CELL_SIZE);
+  if (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
+    return {i, j};
   }
-  mouse.x = x;
-  mouse.y = y;
+  return null;
 }
-window.addEventListener('mousemove', updatePointerFromEvent);
-canvas.addEventListener('touchstart', function(e) {
-  updatePointerFromEvent(e);
-  e.preventDefault();
-}, {passive: false});
-canvas.addEventListener('touchmove', function(e){
-  updatePointerFromEvent(e);
-  e.preventDefault();
-}, {passive: false});
-canvas.addEventListener('touchend', function(e){
-  e.preventDefault();
-}, {passive: false});
-// iOSピンチ・ダブルタップズーム防止
-document.addEventListener('gesturestart', function(e) {
-  e.preventDefault();
+function moveOrbToCell(i, j) {
+  orb.target = {
+    x: GRID_ORIGIN.x + j * CELL_SIZE + CELL_SIZE / 2,
+    y: GRID_ORIGIN.y + i * CELL_SIZE + CELL_SIZE / 2
+  };
+}
+canvas.addEventListener('click', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const cell = cellFromPointer(x, y);
+  if (cell) moveOrbToCell(cell.i, cell.j);
 });
+canvas.addEventListener('touchstart', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
+  const cell = cellFromPointer(x, y);
+  if (cell) moveOrbToCell(cell.i, cell.j);
+  e.preventDefault();
+}, {passive: false});
+// --- 旧マウス・タッチ追従イベントは無効化 ---
 window.addEventListener('mouseleave', () => {
-  mouse.x = orb.x;
-  mouse.y = orb.y;
+  // 何もしない
 });
 
 // --- Main Loop ---
