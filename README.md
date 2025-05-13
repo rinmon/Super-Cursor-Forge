@@ -1,12 +1,12 @@
-# Super Cursor Forge <img src="https://img.shields.io/badge/version-v0.0.6-blue" alt="version" height="22" style="vertical-align:middle;">
+# Super Cursor Forge <img src="https://img.shields.io/badge/version-v0.0.7-blue" alt="version" height="22" style="vertical-align:middle;">
 
-> **v0.0.6**
+> **v0.0.7**
 
 ---
 
 ## 概要
 
-**Super Cursor Forge（Dynamic Cursor Forge） v0.0.6** は、カーソル操作のみで「創造と破壊」をテーマにしたモダンなパズルゲームです。プレイヤーはエネルギーオーブをマウスやタッチで動かし、ステージ内のクリスタル構造を構築または破壊してゴール（ポータル）を目指します。
+**Super Cursor Forge（Dynamic Cursor Forge） v0.0.7** は、カーソル操作のみで「創造と破壊」をテーマにしたモダンなパズルゲームです。プレイヤーはエネルギーオーブをマウスやタッチで動かし、ステージ内のクリスタル構造を構築または破壊してゴール（ポータル）を目指します。
 
 ## プレイ方法
 

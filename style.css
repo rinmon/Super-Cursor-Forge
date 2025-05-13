@@ -120,6 +120,29 @@ h1 {
   border: 2px solid #81d4fa;
   border-radius: 50%;
 }
+.cell-button {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  color: transparent;
+  transition: background-color 0.2s;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cell-button:hover, .cell-button:focus {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.cell-button:active {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
 #showGraph {
   margin-top: 20px;
   padding: 8px 18px;

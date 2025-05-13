@@ -31,19 +31,63 @@ let moveHistory = [];
 let penalty = 0;
 
 // --- Setup ---
+// キャンバスとコンテナ設定
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const gridButtons = document.getElementById('gridButtons');
+const gameContainer = document.getElementById('gameContainer');
 
 function resizeCanvas() {
   document.body.style.height = window.innerHeight + 'px';
   document.documentElement.style.height = window.innerHeight + 'px';
   let size = Math.min(window.innerWidth, window.innerHeight * 0.95, 600);
+  
+  // キャンバスとコンテナのサイズ調整
   canvas.width = size;
   canvas.height = size;
+  gameContainer.style.width = size + 'px';
+  gameContainer.style.height = size + 'px';
+  
+  // ボタングリッドの再生成
+  createButtonGrid();
+  
   window.scrollTo(0,0);
 }
+
+// HTMLボタングリッドの生成
+function createButtonGrid() {
+  // 既存のボタンをクリア
+  gridButtons.innerHTML = '';
+  
+  const buttonSize = canvas.width / GRID_SIZE;
+  
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      const button = document.createElement('button');
+      button.className = 'cell-button';
+      button.style.width = buttonSize + 'px';
+      button.style.height = buttonSize + 'px';
+      button.style.left = (j * buttonSize) + 'px';
+      button.style.top = (i * buttonSize) + 'px';
+      button.dataset.row = i;
+      button.dataset.col = j;
+      button.setAttribute('aria-label', `Cell ${i},${j}`);
+      button.innerHTML = '&nbsp;';
+      
+      // クリック/タップイベント
+      button.addEventListener('click', function() {
+        const row = parseInt(this.dataset.row);
+        const col = parseInt(this.dataset.col);
+        moveOrbToCell(row, col);
+      });
+      
+      gridButtons.appendChild(button);
+    }
+  }
+}
+
 window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+resizeCanvas(); // 初期化
 const gauge = document.getElementById('energyGauge');
 const gaugeCtx = gauge.getContext('2d');
 const seCreate = document.getElementById('se-create');
@@ -106,75 +150,25 @@ function getCellCenter(i, j) {
     y: GRID_ORIGIN.y + i * CELL_SIZE + CELL_SIZE / 2
   };
 }
-// クリック/タッチ位置がセルの中か厳密にチェック
-function isPointInCell(x, y) {
-  // グリッド全体からの相対位置を計算
-  const relX = x - GRID_ORIGIN.x;
-  const relY = y - GRID_ORIGIN.y;
-  
-  // グリッド外ならnull
-  if (relX < 0 || relY < 0 || 
-      relX >= GRID_SIZE * CELL_SIZE || 
-      relY >= GRID_SIZE * CELL_SIZE) {
-    return null;
-  }
-  
-  // セルの行列を計算
-  const i = Math.floor(relY / CELL_SIZE);
-  const j = Math.floor(relX / CELL_SIZE);
-  
-  // 有効範囲内ならそのセルを返す
-  if (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
-    return { i, j };
-  }
-  return null;
-}
-
+// オーブを指定セルに移動させる
 function moveOrbToCell(i, j) {
+  // セルの中心座標を計算
   const cellCenterX = GRID_ORIGIN.x + j * CELL_SIZE + CELL_SIZE / 2;
   const cellCenterY = GRID_ORIGIN.y + i * CELL_SIZE + CELL_SIZE / 2;
+  
+  // オーブの移動先を設定
   orb.target = { x: cellCenterX, y: cellCenterY };
 }
 
-// タッチ/クリックイベント処理
-function handleInteraction(clientX, clientY) {
-  const rect = canvas.getBoundingClientRect();
-  const x = (clientX - rect.left) * (canvas.width / rect.width);
-  const y = (clientY - rect.top) * (canvas.height / rect.height);
-  
-  const cell = getCellFromPoint(x, y);
-  if (cell) {
-    moveOrbToCell(cell.i, cell.j);
-    return true; // 有効なセルをクリックした
-  }
-  return false; // 有効なセル以外をクリックした
-}
-
-// PC用クリックイベント
-canvas.addEventListener('click', function(e) {
-  handleInteraction(e.clientX, e.clientY);
+// iOSのピンチズーム防止
+document.addEventListener('gesturestart', function(e) {
+  e.preventDefault();
 });
 
-// iOS Safari用タッチイベント
-canvas.addEventListener('touchstart', function(e) {
-  if (e.touches && e.touches.length > 0) {
-    if (handleInteraction(e.touches[0].clientX, e.touches[0].clientY)) {
-      e.preventDefault(); // 有効なセルタップのみ中止
-    }
-  }
-}, {passive: false});
-
-// さらにイベントを追加し、iOS Safariのための対策
-canvas.addEventListener('touchend', function(e) {
+// スクロール防止
+document.addEventListener('touchmove', function(e) {
   e.preventDefault();
 }, {passive: false});
-document.addEventListener('gesturestart', function(e) {
-  e.preventDefault(); // iOSピンチズーム防止
-});
-// --- 旧マウス・タッチ追従イベントは無効化 ---
-window.addEventListener('mouseleave', () => {
-  // 何もしない
-});
 
 // --- Main Loop ---
 function gameLoop() {
