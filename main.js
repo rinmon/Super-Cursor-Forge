@@ -6,9 +6,9 @@ const GRID_ORIGIN = { x: 120, y: 120 };
 const ORB_RADIUS = 18;
 const ENERGY_MAX = 100;
 const ENERGY_DECREASE = 0.08;
-const BUILD_ZONE = { x: 120, y: 120, w: 120, h: 120, color: '#1e88e5' }; // 青
-const BREAK_ZONE = { x: 360, y: 120, w: 120, h: 120, color: '#e53935' }; // 赤
-const GRAVITY_FIELD = { x: 240, y: 360, w: 120, h: 120, color: '#00e67677' };
+const BUILD_ZONE = { x: 120, y: 120, w: 120, h: 120, color: '#4fc3f7' }; // 明るい青
+const BREAK_ZONE = { x: 360, y: 120, w: 120, h: 120, color: '#ff8a65' }; // 明るいオレンジ
+const GRAVITY_FIELD = { x: 240, y: 360, w: 120, h: 120, color: '#fff59d77' }; // 明るい黄
 const STAGE_BLUEPRINT = [
   [1,0,1],
   [0,1,0],
@@ -87,13 +87,27 @@ function playSE(audio) {
   audio.play();
 }
 
-// --- Mouse Tracking ---
-canvas.addEventListener('mousemove', e => {
+// --- マウス＆タッチ Tracking ---
+function updatePointerFromEvent(e) {
   const rect = canvas.getBoundingClientRect();
-  mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
-});
-canvas.addEventListener('mouseleave', () => {
+  let x, y;
+  if (e.touches && e.touches.length > 0) {
+    x = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
+    y = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
+  } else {
+    x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  }
+  mouse.x = x;
+  mouse.y = y;
+}
+window.addEventListener('mousemove', updatePointerFromEvent);
+canvas.addEventListener('touchstart', updatePointerFromEvent, {passive: false});
+canvas.addEventListener('touchmove', function(e){
+  updatePointerFromEvent(e);
+  e.preventDefault();
+}, {passive: false});
+window.addEventListener('mouseleave', () => {
   mouse.x = orb.x;
   mouse.y = orb.y;
 });
@@ -122,7 +136,7 @@ function gameLoop() {
   // --- 軌跡記録 ---
   if(running) moveHistory.push({x: orb.x, y: orb.y, t: Date.now()});
   // --- クリスタル配置/破壊 ---
-  if(dist<ORb_RADIUS+2) {
+  if(dist<ORB_RADIUS+2) {
     let cell = cellAt(orb.x, orb.y);
     if(cell) {
       if(mode==='build' && STAGE_BLUEPRINT[cell.i][cell.j]===1 && grid[cell.i][cell.j]===0) {
@@ -183,8 +197,8 @@ function draw() {
       // 設計図ガイド
       if(STAGE_BLUEPRINT[i][j]===1) {
         ctx.save();
-        ctx.globalAlpha = 0.12;
-        ctx.fillStyle = '#fff';
+        ctx.globalAlpha = 0.16;
+        ctx.fillStyle = '#b3e5fc'; // 明るいガイド
         ctx.beginPath();
         ctx.arc(GRID_ORIGIN.x+j*CELL_SIZE+CELL_SIZE/2, GRID_ORIGIN.y+i*CELL_SIZE+CELL_SIZE/2, 32, 0, 2*Math.PI);
         ctx.fill();
@@ -193,9 +207,9 @@ function draw() {
       // クリスタル
       if(grid[i][j]===1) {
         ctx.save();
-        ctx.shadowColor = '#00e5ff';
-        ctx.shadowBlur = 16;
-        ctx.fillStyle = '#fff';
+        ctx.shadowColor = '#4fc3f7';
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = '#fffde7';
         ctx.beginPath();
         ctx.arc(GRID_ORIGIN.x+j*CELL_SIZE+CELL_SIZE/2, GRID_ORIGIN.y+i*CELL_SIZE+CELL_SIZE/2, 28, 0, 2*Math.PI);
         ctx.fill();
@@ -218,8 +232,15 @@ function draw() {
   // エネルギー残量
   ctx.save();
   ctx.font = '16px sans-serif';
-  ctx.fillStyle = '#fff8';
+  ctx.fillStyle = '#222b';
   ctx.fillText('Energy: '+Math.round(orb.energy), 20, 590);
+  ctx.restore();
+
+  // デバッグ: オーブ座標とモード
+  ctx.save();
+  ctx.font = '13px monospace';
+  ctx.fillStyle = '#222b';
+  ctx.fillText(`orb: (${Math.round(orb.x)}, ${Math.round(orb.y)}) mode: ${mode}`, 20, 570);
   ctx.restore();
   // ペナルティ
   if(penalty>0) {
@@ -272,6 +293,14 @@ function showGraph() {
     showGraphBtn.disabled = true;
   };
 }
+
+// --- ルール説明モーダル制御 ---
+document.getElementById('showRules').onclick = () => {
+  document.getElementById('rulesModal').style.display = 'flex';
+};
+document.getElementById('closeRules').onclick = () => {
+  document.getElementById('rulesModal').style.display = 'none';
+};
 
 // --- BGM ---
 bgm.volume = 0.22;

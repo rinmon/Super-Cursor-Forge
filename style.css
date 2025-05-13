@@ -1,9 +1,11 @@
 body {
-  background: radial-gradient(ellipse at center, #222 0%, #111 100%);
-  color: #fff;
+  background: radial-gradient(ellipse at center, #e3f2fd 0%, #bbdefb 100%);
+  color: #222;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
   margin: 0;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 h1 {
   margin-top: 20px;
@@ -11,11 +13,67 @@ h1 {
   font-size: 2em;
 }
 #gameCanvas {
-  background: linear-gradient(135deg, #1a237e 0%, #0d133d 100%);
-  box-shadow: 0 0 30px #00e5ff55;
+  background: linear-gradient(135deg, #fffde7 0%, #b3e5fc 100%);
+  box-shadow: 0 0 30px #29b6f655;
   border-radius: 20px;
   margin: 20px auto;
   display: block;
+  border: 2px solid #81d4fa;
+  max-width: 95vw;
+  max-height: 70vw;
+  width: 600px;
+  height: 600px;
+}
+
+@media (max-width: 700px) {
+  #gameCanvas {
+    width: 96vw;
+    height: 96vw;
+    max-width: 96vw;
+    max-height: 96vw;
+    min-width: 260px;
+    min-height: 260px;
+  }
+  h1 {
+    font-size: 1.3em;
+    margin-top: 10px;
+  }
+  #ui, #energyContainer, #graphContainer {
+    width: 98vw !important;
+    min-width: 0;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 auto;
+    padding: 0;
+  }
+  #energyGauge {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  #showGraph {
+    font-size: 0.9em;
+    padding: 6px 10px;
+  }
+  #rulesModal > div {
+    max-width: 98vw !important;
+    padding: 12px 6px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #gameCanvas {
+    width: 98vw;
+    height: 98vw;
+    min-width: 180px;
+    min-height: 180px;
+  }
+  #energyGauge {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  h1 {
+    font-size: 1.1em;
+  }
 }
 #ui {
   margin-top: 10px;
@@ -27,6 +85,8 @@ h1 {
 }
 #energyGauge {
   background: transparent;
+  border: 2px solid #81d4fa;
+  border-radius: 50%;
 }
 #showGraph {
   margin-top: 20px;
@@ -41,8 +101,8 @@ h1 {
 #graphContainer {
   margin: 0 auto;
   width: 420px;
-  background: #222a;
+  background: #e1f5fecc;
   border-radius: 12px;
   padding: 10px;
-  box-shadow: 0 0 8px #00e5ff44;
+  box-shadow: 0 0 8px #29b6f644;
 }
