@@ -98,37 +98,79 @@ function playSE(audio) {
   audio.play();
 }
 
-// --- セルタップでオーブ追従 ---
-function cellFromPointer(x, y) {
-  // グリッドの左上座標・セルサイズ・グリッドサイズは既存変数を利用
-  const i = Math.floor((y - GRID_ORIGIN.y) / CELL_SIZE);
-  const j = Math.floor((x - GRID_ORIGIN.x) / CELL_SIZE);
-  if (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
-    return {i, j};
-  }
-  return null;
-}
-function moveOrbToCell(i, j) {
-  orb.target = {
+// --- セルボタンとオーブ移動 ---
+// セルの中心点座標を計算
+function getCellCenter(i, j) {
+  return {
     x: GRID_ORIGIN.x + j * CELL_SIZE + CELL_SIZE / 2,
     y: GRID_ORIGIN.y + i * CELL_SIZE + CELL_SIZE / 2
   };
 }
+// クリック/タッチ位置がセルの中か厳密にチェック
+function isPointInCell(x, y) {
+  // グリッド全体からの相対位置を計算
+  const relX = x - GRID_ORIGIN.x;
+  const relY = y - GRID_ORIGIN.y;
+  
+  // グリッド外ならnull
+  if (relX < 0 || relY < 0 || 
+      relX >= GRID_SIZE * CELL_SIZE || 
+      relY >= GRID_SIZE * CELL_SIZE) {
+    return null;
+  }
+  
+  // セルの行列を計算
+  const i = Math.floor(relY / CELL_SIZE);
+  const j = Math.floor(relX / CELL_SIZE);
+  
+  // 有効範囲内ならそのセルを返す
+  if (i >= 0 && i < GRID_SIZE && j >= 0 && j < GRID_SIZE) {
+    return { i, j };
+  }
+  return null;
+}
+
+function moveOrbToCell(i, j) {
+  const cellCenterX = GRID_ORIGIN.x + j * CELL_SIZE + CELL_SIZE / 2;
+  const cellCenterY = GRID_ORIGIN.y + i * CELL_SIZE + CELL_SIZE / 2;
+  orb.target = { x: cellCenterX, y: cellCenterY };
+}
+
+// タッチ/クリックイベント処理
+function handleInteraction(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (clientX - rect.left) * (canvas.width / rect.width);
+  const y = (clientY - rect.top) * (canvas.height / rect.height);
+  
+  const cell = getCellFromPoint(x, y);
+  if (cell) {
+    moveOrbToCell(cell.i, cell.j);
+    return true; // 有効なセルをクリックした
+  }
+  return false; // 有効なセル以外をクリックした
+}
+
+// PC用クリックイベント
 canvas.addEventListener('click', function(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-  const cell = cellFromPointer(x, y);
-  if (cell) moveOrbToCell(cell.i, cell.j);
+  handleInteraction(e.clientX, e.clientY);
 });
+
+// iOS Safari用タッチイベント
 canvas.addEventListener('touchstart', function(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
-  const cell = cellFromPointer(x, y);
-  if (cell) moveOrbToCell(cell.i, cell.j);
+  if (e.touches && e.touches.length > 0) {
+    if (handleInteraction(e.touches[0].clientX, e.touches[0].clientY)) {
+      e.preventDefault(); // 有効なセルタップのみ中止
+    }
+  }
+}, {passive: false});
+
+// さらにイベントを追加し、iOS Safariのための対策
+canvas.addEventListener('touchend', function(e) {
   e.preventDefault();
 }, {passive: false});
+document.addEventListener('gesturestart', function(e) {
+  e.preventDefault(); // iOSピンチズーム防止
+});
 // --- 旧マウス・タッチ追従イベントは無効化 ---
 window.addEventListener('mouseleave', () => {
   // 何もしない
@@ -140,20 +182,40 @@ function gameLoop() {
   // --- モード切り替え ---
   if(inZone(orb.x, orb.y, BUILD_ZONE)) mode = 'build';
   else if(inZone(orb.x, orb.y, BREAK_ZONE)) mode = 'break';
-  // --- 重力フィールド ---
-  let dx = mouse.x - orb.x, dy = mouse.y - orb.y;
-  let speed = Math.min(6, Math.hypot(dx,dy));
+  // --- オーブの移動処理 ---
+  let targetX = orb.x;
+  let targetY = orb.y;
+  
+  // 目標地点が設定されている場合はそこに向かう
+  if (orb.target) {
+    targetX = orb.target.x;
+    targetY = orb.target.y;
+  }
+  
+  // 移動計算
+  let dx = targetX - orb.x;
+  let dy = targetY - orb.y;
+  let dist = Math.hypot(dx, dy);
+  let speed = Math.min(6, dist * 0.2); // 距離によって速度変化
+  
+  // 重力フィールドの影響
   if(inZone(orb.x, orb.y, GRAVITY_FIELD)) {
     let center = { x: GRAVITY_FIELD.x+GRAVITY_FIELD.w/2, y: GRAVITY_FIELD.y+GRAVITY_FIELD.h/2 };
     dx += (center.x - orb.x)*0.04;
     dy += (center.y - orb.y)*0.04;
     speed *= 0.7;
+    dist = Math.hypot(dx, dy); // 重力により方向が変わったので再計算
   }
-  let dist = Math.hypot(dx,dy);
-  if(dist>1) {
+  
+  // 一定距離以上で移動
+  if (dist > 1) {
     orb.x += dx/dist*speed;
     orb.y += dy/dist*speed;
     orb.energy = Math.max(0, orb.energy - ENERGY_DECREASE*speed);
+  } else if (orb.target) {
+    // 目標に着いたらクリア
+    orb.x = orb.target.x;
+    orb.y = orb.target.y;
   }
   // --- 軌跡記録 ---
   if(running) moveHistory.push({x: orb.x, y: orb.y, t: Date.now()});
@@ -210,22 +272,54 @@ function draw() {
     ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
     ctx.restore();
   });
-  // グリッド
+  // グリッドとボタン風セル
   for(let i=0;i<GRID_SIZE;i++){
     for(let j=0;j<GRID_SIZE;j++){
-      ctx.strokeStyle = '#fff8';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(GRID_ORIGIN.x + j*CELL_SIZE, GRID_ORIGIN.y + i*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+      const cellX = GRID_ORIGIN.x + j*CELL_SIZE;
+      const cellY = GRID_ORIGIN.y + i*CELL_SIZE;
+      const centerX = cellX + CELL_SIZE/2;
+      const centerY = cellY + CELL_SIZE/2;
+      
+      // ボタン風のセル背景
+      ctx.save();
+      // ボタンの影と外枚
+      ctx.fillStyle = '#ffffff33';
+      ctx.shadowColor = '#00000044';
+      ctx.shadowBlur = 5;
+      ctx.shadowOffsetY = 2;
+      // 角丸四角形
+      ctx.beginPath();
+      const radius = 8;
+      ctx.moveTo(cellX + radius, cellY);
+      ctx.lineTo(cellX + CELL_SIZE - radius, cellY);
+      ctx.arc(cellX + CELL_SIZE - radius, cellY + radius, radius, -Math.PI/2, 0);
+      ctx.lineTo(cellX + CELL_SIZE, cellY + CELL_SIZE - radius);
+      ctx.arc(cellX + CELL_SIZE - radius, cellY + CELL_SIZE - radius, radius, 0, Math.PI/2);
+      ctx.lineTo(cellX + radius, cellY + CELL_SIZE);
+      ctx.arc(cellX + radius, cellY + CELL_SIZE - radius, radius, Math.PI/2, Math.PI);
+      ctx.lineTo(cellX, cellY + radius);
+      ctx.arc(cellX + radius, cellY + radius, radius, Math.PI, Math.PI*3/2);
+      ctx.closePath();
+      
+      ctx.fill();
+      ctx.restore();
+      
+      // セルの枠線
+      ctx.strokeStyle = '#ffffff77';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+      
       // 設計図ガイド
       if(STAGE_BLUEPRINT[i][j]===1) {
         ctx.save();
         ctx.globalAlpha = 0.16;
-        ctx.fillStyle = '#b3e5fc'; // 明るいガイド
+        ctx.fillStyle = '#29b6f6'; // 明るいガイド
         ctx.beginPath();
-        ctx.arc(GRID_ORIGIN.x+j*CELL_SIZE+CELL_SIZE/2, GRID_ORIGIN.y+i*CELL_SIZE+CELL_SIZE/2, 32, 0, 2*Math.PI);
+        ctx.arc(centerX, centerY, 32, 0, 2*Math.PI);
         ctx.fill();
         ctx.restore();
       }
+      
       // クリスタル
       if(grid[i][j]===1) {
         ctx.save();
@@ -233,7 +327,7 @@ function draw() {
         ctx.shadowBlur = 18;
         ctx.fillStyle = '#fffde7';
         ctx.beginPath();
-        ctx.arc(GRID_ORIGIN.x+j*CELL_SIZE+CELL_SIZE/2, GRID_ORIGIN.y+i*CELL_SIZE+CELL_SIZE/2, 28, 0, 2*Math.PI);
+        ctx.arc(centerX, centerY, 28, 0, 2*Math.PI);
         ctx.fill();
         ctx.restore();
       }
