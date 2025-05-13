@@ -33,6 +33,14 @@ let penalty = 0;
 // --- Setup ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  let size = Math.min(window.innerWidth, window.innerHeight * 0.95, 600);
+  canvas.width = size;
+  canvas.height = size;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 const gauge = document.getElementById('energyGauge');
 const gaugeCtx = gauge.getContext('2d');
 const seCreate = document.getElementById('se-create');
