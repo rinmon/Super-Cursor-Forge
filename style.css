@@ -1,9 +1,14 @@
 html, body, #ui, #gameCanvas, canvas {
   width: 100vw;
+  height: 100vh;
   max-width: 100vw;
-  overflow-x: hidden;
+  max-height: 100vh;
+  overflow: hidden !important;
   box-sizing: border-box;
   touch-action: none;
+  position: fixed;
+  left: 0;
+  top: 0;
 }
 body {
   background: radial-gradient(ellipse at center, #e3f2fd 0%, #bbdefb 100%);
@@ -94,8 +99,21 @@ h1 {
 }
 #energyContainer {
   position: absolute;
-  left: 20px;
-  top: 20px;
+  top: 12px;
+  left: 12px;
+  z-index: 110;
+}
+@media (max-width: 600px) {
+  #energyContainer {
+    top: 56px;
+    left: 12px;
+    width: 100px;
+    height: 100px;
+  }
+  #energyGauge {
+    width: 100px !important;
+    height: 100px !important;
+  }
 }
 #energyGauge {
   background: transparent;

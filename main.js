@@ -35,9 +35,12 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 function resizeCanvas() {
+  document.body.style.height = window.innerHeight + 'px';
+  document.documentElement.style.height = window.innerHeight + 'px';
   let size = Math.min(window.innerWidth, window.innerHeight * 0.95, 600);
   canvas.width = size;
   canvas.height = size;
+  window.scrollTo(0,0);
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
